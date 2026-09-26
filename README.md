@@ -95,3 +95,21 @@ The application can use its built-in recommendation system when Gemini is unavai
 5. Get AI recommendations.
 6. Scan receipts and export your data.
 
+
+## 🚀 Future Improvements
+
+- 🏦 Bank & UPI integration
+- 🔔 Smart budget alerts and notifications
+- 📅 Recurring expense tracking
+- 📈 Advanced spending predictions
+- 🌐 Multi-language support
+- 📱 Mobile app / PWA support
+- ☁️ Cloud deployment
+- 🧠 More personalized AI recommendations
+
+---
+
+### 🩵 Thank You!
+
+**PocketSmart AI — Spend Smart. Save More. Live Better.**
+Built with technology, simplicity, and smarter financial thinking. 🚀

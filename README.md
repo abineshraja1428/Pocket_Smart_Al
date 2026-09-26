@@ -1,4 +1,4 @@
-# 💰 PocketSmart AI
+# 💰 Pocket_Smart AI
 
 ### Your Smart Budget & Recommendation Assistant
 
@@ -15,6 +15,19 @@ PocketSmart AI is a simple web-based finance app to **track expenses, manage bud
 * 📄 CSV export
 * 🌙 Dark/Light mode
 
+## 📁 Structure
+
+```text
+pocket-smart-ai/
+├── app.py
+├── requirements.txt
+├── spend_guide.db
+├── templates/
+│   └── index.html
+└── static/
+    ├── app.js
+    └── style.css
+```
 ## 🛠️ Tech Stack
 
 **Python • Flask • HTML • CSS • JavaScript • SQLite • Chart.js • Google Gemini**
@@ -63,6 +76,16 @@ python app.py
 
 Open **http://localhost:5000** in your browser.
 
+## 🤖 Gemini AI Setup
+
+Gemini is optional. Set your API key as:
+
+```bash
+GEMINI_API_KEY=your_api_key
+```
+> AI recommendations are for general financial guidance only.
+The application can use its built-in recommendation system when Gemini is unavailable.
+
 ## 📖 Usage
 
 1. Register or log in.
@@ -72,18 +95,3 @@ Open **http://localhost:5000** in your browser.
 5. Get AI recommendations.
 6. Scan receipts and export your data.
 
-## 📁 Structure
-
-```text
-pocket-smart-ai/
-├── app.py
-├── requirements.txt
-├── spend_guide.db
-├── templates/
-│   └── index.html
-└── static/
-    ├── app.js
-    └── style.css
-```
-
-> 🤖 AI recommendations are for general financial guidance only.

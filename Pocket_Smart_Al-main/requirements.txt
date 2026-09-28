@@ -1,4 +1,0 @@
-Flask==3.0.3
-google-genai>=0.1.1
-# Optional PostgreSQL support — install only if using Postgres
-# psycopg2-binary>=2.9.9

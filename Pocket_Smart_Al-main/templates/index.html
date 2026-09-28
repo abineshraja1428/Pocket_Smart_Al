@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PocketSmart AI &mdash; Intelligent Expense Tracker &amp; Financial Dashboard</title>
+  <meta name="description" content="AI-powered expense tracker with multi-user accounts, OCR receipt scanning, financial health dashboard, and smart savings advisor.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       AUTH SCREEN (shown when not logged in)
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div id="authScreen" class="auth-screen" style="display:none;">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="brand-badge"><span class="brand-sparkle">✦</span></div>
+        <div>
+          <div class="brand-name">PocketSmart <span class="brand-highlight">AI</span></div>
+          <div class="brand-sub">Smart Wealth &middot; Personal Financial Engine</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="loginTab" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="auth-tab" id="registerTab" onclick="switchAuthTab('register')">Create Account</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label for="loginIdentifier">Username or Email</label>
+          <input type="text" id="loginIdentifier" required placeholder="e.g. john@email.com">
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" required placeholder="Your password">
+        </div>
+        <div id="loginError" class="auth-error" style="display:none;"></div>
+        <button type="submit" class="action-btn primary-btn full-width">Sign In &rarr;</button>
+        <p class="auth-footer-note">
+          Demo: Use any username/password &mdash; register first or use preset data.
+        </p>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" class="auth-form" style="display:none;">
+        <div class="form-group">
+          <label for="regUsername">Username *</label>
+          <input type="text" id="regUsername" required placeholder="e.g. john_doe" minlength="3">
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Email *</label>
+          <input type="email" id="regEmail" required placeholder="john@email.com">
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Password *</label>
+          <input type="password" id="regPassword" required placeholder="Min. 8 characters" minlength="8">
+        </div>
+        <div id="registerError" class="auth-error" style="display:none;"></div>
+        <button type="submit" class="action-btn primary-btn full-width">Create Account &rarr;</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MAIN DASHBOARD (shown when logged in)
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div id="appShell" style="display:none;">
+
+  <!-- Top Navigation Bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-badge">
+        <span class="brand-sparkle">✦</span>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">PocketSmart <span class="brand-highlight">AI</span></span>
+        <span class="brand-sub">Smart Wealth &middot; Personal Financial Engine</span>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button id="presetDataBtn" class="action-btn secondary-btn" title="Load sample transactions and goals">
+        <span class="btn-icon">⚡</span> Preset Demo
+      </button>
+      <button id="scanReceiptBtn" class="action-btn secondary-btn" title="Scan a receipt with AI OCR">
+        <span class="btn-icon">📷</span> Scan Receipt
+      </button>
+      <button id="exportBtn" class="action-btn secondary-btn" title="Export transactions">
+        <span class="btn-icon">⬇</span> Export CSV
+      </button>
+      <button id="aiAdvisorBtn" class="action-btn ai-btn" title="Open AI Financial Advisor">
+        <span class="btn-icon">✦</span> Ask AI Advisor
+      </button>
+      <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Light / Dark mode" aria-label="Toggle theme">
+        <span id="themeIcon">☀️</span>
+        <span id="themeLabel">Light</span>
+      </button>
+      <div class="user-menu">
+        <button class="user-avatar-btn" id="userMenuBtn" title="Account">
+          <span id="userAvatarInitial">?</span>
+        </button>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-name" id="userDropdownName">—</div>
+          <button class="user-dropdown-item danger" id="logoutBtn">Sign Out</button>
+        </div>
+      </div>
+      <button id="addExpenseBtn" class="action-btn primary-btn">
+        <span class="btn-icon">+</span> Add Expense
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="dashboard-container">
+
+    <!-- Hero / Financial Health Banner -->
+    <section class="hero-banner">
+      <div class="hero-content">
+        <div class="hero-pills">
+          <span class="status-pill" id="heroPeriodPill">Current Period &middot; Loading...</span>
+          <span class="ai-status-pill" id="aiStatusPill">
+            <span class="dot"></span> <span id="aiEngineLabel">Local Rules Engine</span>
+          </span>
+        </div>
+        <h1 class="hero-title">Financial clarity, <br><span class="gradient-text">amplified by AI.</span></h1>
+        <p class="hero-desc">Real-time expenditure tracking, OCR receipt scanning, automated runway forecasts, and proactive wealth recommendations.</p>
+        
+        <div class="health-score-card">
+          <div class="score-circle" id="scoreCircle">
+            <span class="score-number" id="healthScoreValue">--</span>
+            <span class="score-label">Score</span>
+          </div>
+          <div class="score-details">
+            <div class="score-status-row">
+              <span class="score-badge" id="healthScoreBadge">Evaluating</span>
+              <span class="score-subtitle">Financial Condition</span>
+            </div>
+            <p class="score-explanation" id="healthScoreSummary">Loading financial health metrics...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Budget Overview Box -->
+      <div class="hero-budget-card">
+        <div class="budget-card-header">
+          <span class="budget-card-title">Monthly Budget Runway</span>
+          <button id="editBudgetBtn" class="edit-link-btn" title="Edit Monthly Budget">Edit Limit</button>
+        </div>
+        <div class="budget-metric">
+          <span class="budget-currency">₹</span>
+          <span class="budget-amount" id="remainingBudgetHero">0.00</span>
+        </div>
+        <span class="budget-subnote" id="remainingBudgetNote">Remaining this month</span>
+        
+        <div class="budget-progress-wrap">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="budgetProgressFill" style="width: 0%"></div>
+          </div>
+          <div class="progress-labels">
+            <span id="budgetSpentLabel">Spent: ₹0</span>
+            <span id="budgetLimitLabel">Limit: ₹0</span>
+          </div>
+        </div>
+
+        <div class="daily-runway-box">
+          <span class="runway-icon">📅</span>
+          <div class="runway-text">
+            <span class="runway-title">Daily Allowable Burn</span>
+            <span class="runway-value" id="dailyRunwayValue">₹0/day</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top KPI Dashboard Cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-head">
+          <span class="kpi-label">Total Outflow (All-Time)</span>
+          <span class="kpi-icon outflow">💸</span>
+        </div>
+        <div class="kpi-value" id="kpiTotalSpent">₹0.00</div>
+        <div class="kpi-foot">
+          <span class="kpi-sub" id="kpiTxCount">0 transactions recorded</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-head">
+          <span class="kpi-label">This Month's Spending</span>
+          <span class="kpi-icon month">📊</span>
+        </div>
+        <div class="kpi-value" id="kpiMonthSpent">₹0.00</div>
+        <div class="kpi-foot">
+          <span class="kpi-sub" id="kpiMonthPercent">0% of monthly budget</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-head">
+          <span class="kpi-label">Net Savings Buffer</span>
+          <span class="kpi-icon savings">🛡️</span>
+        </div>
+        <div class="kpi-value" id="kpiSavingsRate">0.0%</div>
+        <div class="kpi-foot">
+          <span class="kpi-sub" id="kpiSavingsStatus">Target: 20%+</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-head">
+          <span class="kpi-label">Daily Average Burn</span>
+          <span class="kpi-icon daily">⚡</span>
+        </div>
+        <div class="kpi-value" id="kpiDailyAverage">₹0.00</div>
+        <div class="kpi-foot">
+          <span class="kpi-sub" id="kpiProjectedMonth">Projected: ₹0</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Charts Section -->
+    <section class="charts-grid">
+      <!-- 7-Day Trend Chart -->
+      <div class="panel chart-panel">
+        <div class="panel-header">
+          <div>
+            <span class="eyebrow">Temporal Rhythm</span>
+            <h2 class="panel-title">7-Day Spending Trajectory</h2>
+          </div>
+          <span class="badge-tag">Daily Pace</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Category Breakdown Chart -->
+      <div class="panel chart-panel">
+        <div class="panel-header">
+          <div>
+            <span class="eyebrow">Category Distribution</span>
+            <h2 class="panel-title">Where Your Money Goes</h2>
+          </div>
+          <span class="badge-tag" id="activeCategoryCount">7 Categories</span>
+        </div>
+        <div class="chart-container doughnut-wrap">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Monthly Trend Chart (Advanced) -->
+    <section class="panel chart-panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">6-Month Panorama</span>
+          <h2 class="panel-title">Monthly Spending Trend</h2>
+          <p class="panel-desc">Track how your total expenditure shifts month over month.</p>
+        </div>
+        <div class="panel-actions">
+          <button id="exportMonthBtn" class="ghost-btn" title="Export current month CSV">
+            <span>⬇</span> Export Month
+          </button>
+        </div>
+      </div>
+      <div class="chart-container" style="height: 220px;">
+        <canvas id="monthlyTrendChart"></canvas>
+      </div>
+    </section>
+
+    <!-- AI Recommendations & Insights Section -->
+    <section class="panel ai-recommendations-panel">
+      <div class="panel-header">
+        <div>
+          <div class="ai-section-badge">
+            <span class="sparkle">✦</span> AI Smart Advisor
+          </div>
+          <h2 class="panel-title" id="aiHeadline">Personalized Financial Intelligence</h2>
+          <p class="panel-desc" id="aiSummaryText">Analyzing transaction velocity and categorizing actionable saving avenues.</p>
+          <p class="panel-desc" id="aiSpendingPattern" style="margin-top: 4px; font-style: italic;"></p>
+        </div>
+        <div class="panel-actions">
+          <button id="refreshAiBtn" class="ghost-btn" title="Re-evaluate with AI">
+            <span>⟳</span> Refresh Analysis
+          </button>
+          <button id="openAiDrawerBtn" class="ai-btn small">
+            <span>✦</span> Ask Advisor
+          </button>
+        </div>
+      </div>
+
+      <!-- Recommendation Cards List -->
+      <div class="reco-grid" id="recoContainer">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Quick AI Saving Rules -->
+      <div class="ai-tips-strip" id="aiTipsStrip">
+        <!-- Dynamic Tips -->
+      </div>
+    </section>
+
+    <!-- Category Runway & Budget Breakdown -->
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Category Thresholds</span>
+          <h2 class="panel-title">Monthly Category Runway</h2>
+          <p class="panel-desc">Real-time status of spending vs recommended category budget limits.</p>
+        </div>
+      </div>
+      <div class="category-bars-grid" id="categoryBarsGrid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- Savings Goals Section -->
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Future You</span>
+          <h2 class="panel-title">Dedicated Savings Goals</h2>
+          <p class="panel-desc">Allocating disciplined cash reserves to milestone targets.</p>
+        </div>
+        <button id="addGoalBtn" class="action-btn secondary-btn">+ New Goal</button>
+      </div>
+      <div class="goal-grid" id="goalGrid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- Transactions Section -->
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Audit Trail</span>
+          <h2 class="panel-title">Expense Transactions</h2>
+        </div>
+        <div class="tx-stats">
+          <span id="filteredTxCount" class="badge-tag">0 transactions</span>
+          <span id="filteredTxSum" class="badge-tag highlight">₹0.00 total</span>
+        </div>
+      </div>
+
+      <!-- Filters & Search Toolbar -->
+      <div class="tx-toolbar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="txSearch" placeholder="Search merchant, title, or note...">
+        </div>
+        <div class="filter-controls">
+          <select id="txCategoryFilter" aria-label="Filter by category">
+            <option value="">All Categories</option>
+            {% for c in categories %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+          </select>
+          <select id="txMonthFilter" aria-label="Filter by month">
+            <option value="">All Months</option>
+          </select>
+          <select id="txSortOrder" aria-label="Sort order">
+            <option value="date_desc">Date (Newest First)</option>
+            <option value="date_asc">Date (Oldest First)</option>
+            <option value="amount_desc">Amount (Highest First)</option>
+            <option value="amount_asc">Amount (Lowest First)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Transaction Table -->
+      <div class="tx-table-wrap">
+        <div class="tx-table" id="txTable">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+  </div><!-- /#appShell -->
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MODALS
+  ════════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Modal: Add Expense -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h3 id="modalTitle">Record New Expense</h3>
+        <button type="button" class="close-btn" id="closeExpenseModal" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="expenseModalForm">
+        <div class="form-group">
+          <label for="title">Merchant or Description *</label>
+          <input type="text" id="title" required placeholder="e.g. Whole Foods, Metro Card, Amazon">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="amount">Amount (₹) *</label>
+            <input type="number" id="amount" min="0.01" step="0.01" required placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label for="category">Category *</label>
+            <select id="category" required>
+              {% for c in categories %}
+              <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="date">Transaction Date *</label>
+            <input type="date" id="date" required>
+          </div>
+          <div class="form-group">
+            <label for="note">Optional Note</label>
+            <input type="text" id="note" placeholder="e.g. Weekly stock up">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="ghost-btn" id="cancelExpenseModal">Cancel</button>
+          <button type="submit" class="action-btn primary-btn">Save Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: OCR Receipt Scanner -->
+  <div class="modal-backdrop" id="ocrModalBackdrop">
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div class="ai-brand-title">
+          <span class="sparkle">📷</span>
+          <div>
+            <h3>AI Receipt Scanner</h3>
+            <span class="ai-brand-sub">Powered by Gemini Vision OCR</span>
+          </div>
+        </div>
+        <button type="button" class="close-btn" id="closeOcrModal" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div id="ocrUploadArea" class="ocr-upload-area">
+        <div class="ocr-upload-icon">📄</div>
+        <p class="ocr-upload-label">Drag & drop receipt image or</p>
+        <label for="receiptFileInput" class="action-btn secondary-btn" style="cursor:pointer;">
+          Browse Image
+        </label>
+        <input type="file" id="receiptFileInput" accept="image/*" style="display:none;">
+        <p class="input-hint" style="margin-top: 8px;">Supports JPG, PNG, WEBP &mdash; max 10MB</p>
+        <p class="input-hint">Requires a Gemini API key (enter in AI Advisor)</p>
+      </div>
+
+      <div id="ocrPreviewArea" style="display:none;">
+        <img id="ocrPreviewImg" src="" alt="Receipt preview" class="ocr-preview-img">
+        <div id="ocrStatus" class="ocr-status-msg">
+          <span id="ocrStatusText">Extracting data with AI...</span>
+        </div>
+      </div>
+
+      <div id="ocrResultForm" style="display:none;">
+        <p class="input-hint" style="margin-bottom: 12px; color: var(--success);">✓ Receipt scanned! Review and confirm the details below:</p>
+        <div class="form-group">
+          <label for="ocrTitle">Merchant / Description *</label>
+          <input type="text" id="ocrTitle" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ocrAmount">Amount (₹) *</label>
+            <input type="number" id="ocrAmount" min="0.01" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="ocrCategory">Category *</label>
+            <select id="ocrCategory">
+              {% for c in categories %}
+              <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ocrDate">Date *</label>
+            <input type="date" id="ocrDate" required>
+          </div>
+          <div class="form-group">
+            <label for="ocrNote">Note</label>
+            <input type="text" id="ocrNote">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="ghost-btn" id="ocrRescanBtn">↺ Rescan</button>
+          <button type="button" class="action-btn primary-btn" id="ocrSaveBtn">Save Expense</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Goal -->
+  <div class="modal-backdrop" id="goalModalBackdrop">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
+      <div class="modal-header">
+        <h3 id="goalModalTitle">Create Savings Goal</h3>
+        <button type="button" class="close-btn" id="closeGoalModal" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="goalModalForm">
+        <div class="form-group">
+          <label for="goalName">Goal Name *</label>
+          <input type="text" id="goalName" required placeholder="e.g. Emergency Fund, Laptop, Vacation">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="goalTarget">Target Amount (₹) *</label>
+            <input type="number" id="goalTarget" min="1" step="1" required placeholder="50000">
+          </div>
+          <div class="form-group">
+            <label for="goalSaved">Currently Saved (₹)</label>
+            <input type="number" id="goalSaved" min="0" step="1" value="0" placeholder="0">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="ghost-btn" id="cancelGoalModal">Cancel</button>
+          <button type="submit" class="action-btn primary-btn">Create Goal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Deposit to Goal -->
+  <div class="modal-backdrop" id="depositModalBackdrop">
+    <div class="modal-card small" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h3 id="depositModalTitle">Add Funds to Goal</h3>
+        <button type="button" class="close-btn" id="closeDepositModal" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="depositModalForm">
+        <input type="hidden" id="depositGoalId">
+        <div class="form-group">
+          <label for="depositAmount">Deposit Amount (₹) *</label>
+          <input type="number" id="depositAmount" min="1" step="1" required placeholder="e.g. 5000">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="ghost-btn" id="cancelDepositModal">Cancel</button>
+          <button type="submit" class="action-btn primary-btn">Deposit Funds</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Budget Limit -->
+  <div class="modal-backdrop" id="budgetModalBackdrop">
+    <div class="modal-card small" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h3>Adjust Monthly Budget Limit</h3>
+        <button type="button" class="close-btn" id="closeBudgetModal" aria-label="Close modal">&times;</button>
+      </div>
+      <form id="budgetModalForm">
+        <div class="form-group">
+          <label for="monthlyBudgetInput">Monthly Spending Cap (₹) *</label>
+          <input type="number" id="monthlyBudgetInput" min="1000" step="500" required placeholder="40000">
+          <span class="input-hint">Sets your target ceiling for monthly expenses.</span>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="ghost-btn" id="cancelBudgetModal">Cancel</button>
+          <button type="submit" class="action-btn primary-btn">Update Budget</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Drawer / Modal: Ask AI Financial Advisor -->
+  <div class="modal-backdrop" id="aiDrawerBackdrop">
+    <div class="modal-card ai-drawer" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div class="ai-brand-title">
+          <span class="sparkle">✦</span>
+          <div>
+            <h3>PocketSmart AI Advisor</h3>
+            <span class="ai-brand-sub" id="drawerEngineStatus">Connected to Financial Intelligence</span>
+          </div>
+        </div>
+        <button type="button" class="close-btn" id="closeAiDrawer" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="ai-drawer-body">
+        <!-- API Key Collapsible Bar -->
+        <div class="api-key-config">
+          <details>
+            <summary>⚙️ Google Gemini API Key (Optional — enables AI &amp; OCR)</summary>
+            <div class="api-key-field">
+              <input type="password" id="geminiApiKeyInput" placeholder="Enter your Gemini API key">
+              <button type="button" id="saveApiKeyBtn" class="small-btn">Save Key</button>
+            </div>
+            <span class="input-hint">Without a key, PocketSmart uses its built-in Financial Rules Engine. With a key, OCR and Gemini AI are enabled.</span>
+          </details>
+        </div>
+
+        <!-- Conversation Stream -->
+        <div class="ai-chat-messages" id="aiChatMessages">
+          <div class="chat-msg ai-msg">
+            <div class="chat-avatar">✦</div>
+            <div class="chat-bubble">
+              <p>Hello! I am your <strong>PocketSmart AI Financial Advisor</strong>.</p>
+              <p>I analyze your real-time expenses, category velocity, runway limits, and savings rates to give you precise guidance.</p>
+              <p>What financial move would you like to explore today?</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Prompts Chips -->
+        <div class="ai-prompt-chips">
+          <button class="prompt-chip" data-prompt="How can I reduce my Food spending without extreme sacrifice?">🍔 Cut Food Spend</button>
+          <button class="prompt-chip" data-prompt="What is my current daily burn rate and allowable runway?">📅 Analyze Daily Runway</button>
+          <button class="prompt-chip" data-prompt="How fast can I achieve my Emergency Fund goal?">🛡️ Accelerate Savings</button>
+          <button class="prompt-chip" data-prompt="What are my top 3 financial blindspots this month?">🔍 Top 3 Blindspots</button>
+          <button class="prompt-chip" data-prompt="Analyze my spending habits and identify patterns">📊 Habit Analysis</button>
+        </div>
+
+        <!-- Chat Input Form -->
+        <form id="aiChatForm" class="ai-chat-input-row">
+          <input type="text" id="aiQuestionInput" required placeholder="Ask any question about your spending or wealth goals...">
+          <button type="submit" id="sendAiQuestionBtn" class="action-btn primary-btn">
+            <span>Send</span> ➔
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Popup -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- Frontend Logic -->
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

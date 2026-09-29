@@ -21,11 +21,7 @@ PocketSmart AI is a web-based smart budget and recommendation assistant that hel
 6.Project Testing/
 7.Project Documentation/
 8.Project Demonstration/
-app.py
-templates/
-static/
-requirements.txt
-spend_guide.db
+PocketSmart_AI_Project_Report
 README.md
 ```
 

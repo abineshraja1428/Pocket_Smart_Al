@@ -1,5 +1,11 @@
 # PocketSmart AI — AI/ML/Gen-AI Track Project
 
+## Team Information
+
+- **Team ID:** SWTID-2026-4005
+- **Team Size:** 5 members
+- **Team Members:** Abinesh S, Prakash N, Sachin S, Gokul Krishnan G, Jagadeesh V
+
 ## Project Overview
 
 PocketSmart AI is a web-based smart budget and recommendation assistant that helps users track expenses, manage monthly budgets, set savings goals, visualize spending, scan receipts, export transaction data, and receive AI-assisted financial recommendations.
@@ -58,6 +64,6 @@ are required, the Gemini API key according to the project documentation.
 
 ## Notes
 
-- Team ID and team-member names were not present in the supplied project, so they are marked `TBD` in the submission documents.
+- Team ID and team-member details have been updated across the submission documents.
 - Performance figures are not fabricated; the testing document specifies what should be measured in the final environment.
 - The original application source files are retained.

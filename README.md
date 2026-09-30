@@ -83,7 +83,8 @@ Pocket_Smart_AI_Report/
 │
 ├── 7.Project Documentation/
 │   ├── Project Executable Files.pdf
-│   └── Sample Project Documentation.pdf
+│   ├── Sample Project Documentation.pdf
+│   └──Pocket_Smart_AI coding
 │
 ├── 8.Project Demonstration/
 │   ├── Communication.pdf

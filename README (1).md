@@ -4,7 +4,6 @@
 
 | Details | Information |
 |---|---|
-| **Folder Name** | `Pocket_Smart_AI_Report` |
 | **Team ID** | `SWTID-2026-4005` |
 | **Date** | `29 September 2026` |
 | **Project Name** | `PocketSmart AI` |
@@ -92,6 +91,8 @@ Pocket_Smart_AI_Report/
 │   ├── Project Demo Planning.pdf
 │   ├── Scalability & Future Plan.pdf
 │   └── Team Involvement in Demonstration.pdf
+│
+├──PocketSmart_AI_Project_Report.docx
 │
 └── README.md
 ```

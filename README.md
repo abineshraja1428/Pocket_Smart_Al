@@ -105,6 +105,7 @@ The executable project uses Python and Flask.
 pip install -r requirements.txt
 python app.py
 ```
+Then open `http://localhost:5000`.
 
 The application is served through Flask.
 
